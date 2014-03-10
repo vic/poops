@@ -53,8 +53,10 @@ function newGame(mode){
     pet.animations.add('colita', ['cola1.png', 'cola2.png', 'cola3.png'], 3, true, false)
     pet.animations.play('colita')
 
-    plates_group = game.add.group()
-    poops_group = game.add.group()
+    plates_group = game.add.group(null, 'plates')
+    plates_group.named = {}
+
+    poops_group = game.add.group(null, 'poops')
     poops_group.named = {}
 
     var actions_button = game.add.button(10, 10, 'actions-button', toggleActions)
@@ -68,10 +70,14 @@ function newGame(mode){
 
     if(mode.isPet){
 
-      var action_poop = game.add.sprite(10, 60, 'perrito', 'icono_popis.png', actions_group)
+      var action_poop = game.add.button(10, 60, 'perrito', poopClicked, this, 'icono_popis.png', 'icono_popis.png', 'icono_popis.png', 'icono_popis.png', actions_group)
+      function poopClicked(here) {
+        here = here || pet
+        mode.petRef.child('poops').push({x: here.body.x, y: here.body.y + here.body.height })
+      }
       action_poop.scale.setTo(0.5, 0.5)
       makeDraggableTool(action_poop, function(){
-        mode.petRef.child('poops').push({x: action_poop.body.x, y: action_poop.body.y })
+        poopClicked(action_poop)
       })
 
       var action_sleep = game.add.button(10, 110, 'perrito', sleepyClicked, this, 'icono_zzz.png', 'icono_zzz.png', 'icono_zzz.png', 'icono_zzz.png', actions_group)
@@ -87,7 +93,7 @@ function newGame(mode){
       var action_feed = game.add.sprite(10, 110, 'perrito', 'platolleno.png', actions_group)
       action_feed.scale.setTo(0.5, 0.5)
       makeDraggableTool(action_feed, function(){
-        mode.petRef.child('foods').push({x: action_feed.body.x, y: action_feed.body.y })
+        mode.petRef.child('plates').push({x: action_feed.body.x, y: action_feed.body.y })
       })
 
       mode.petRef.child('movingTo').on('value', function(movingTo){
@@ -115,11 +121,25 @@ function newGame(mode){
       delete poops_group.named[snap.name()]
     })
 
-    mode.petRef.child('foods').on('child_added', function(snap){
+    mode.petRef.child('plates').on('child_added', function(snap){
       var pos = snap.val()
-      var food = game.add.sprite(pos.x, pos.y, 'perrito', 'platolleno.png', plates_group)
-      food.scale.setTo(0.5, 0.5)
-      food.anchor.setTo(0.5, 0.5)
+      var plate = game.add.sprite(pos.x, pos.y, 'perrito', 'platolleno.png', plates_group)
+      plate.scale.setTo(0.5, 0.5)
+      plate.anchor.setTo(0.5, 0.5)
+      plates_group.named[snap.name()] = plate
+      plate.name = snap.name()
+
+      snap.ref().child("eaten").on("value", function(eaten){
+        if(eaten.val()){
+          plate.frameName = "platovacio.png"
+        }
+      })
+    })
+
+    mode.petRef.child('plates').on('child_removed', function(snap){
+      var plate = plates_group.named[snap.name()]
+      plate.kill()
+      delete plates_group.named[snap.name()]
     })
 
 
@@ -138,6 +158,7 @@ function newGame(mode){
     }, this);
   }
 
+
   function sleepyClicked() {
     pet.energized = (pet.energized || 1) * 0.931416
     mode.petRef.child('energized').set(pet.energized)
@@ -149,16 +170,30 @@ function newGame(mode){
   }
 
   function update(){
-    if(mode.isPet){ triggerPetMovementOnTouch() }
     stopMovingPetIfArrived()
     stopMovingToolsIfArrived()
+    if(mode.isPet){ 
+      triggerPetMovementOnTouch()
+      dogEatsPlate()
+    } else {
+      brushCleans() 
+    }
+  }
 
-    game.physics.overlap(action_clean, poops_group, function(brush, poop){
-      if(poop.name){ 
-        mode.petRef.child('poops').child(poop.name).set(null)
+  function brushCleans() {
+    game.physics.overlap(action_clean, [poops_group, plates_group], function(brush, dirth){
+      if(dirth.name){ 
+        mode.petRef.child(dirth.group.name).child(dirth.name).set(null)
       }
     })
+  }
 
+  function dogEatsPlate() {
+    game.physics.overlap(pet, plates_group, function(pet, plate){
+      if(plate.name){ 
+        mode.petRef.child('plates').child(plate.name).child("eaten").set(true)
+      }
+    })
   }
 
 
