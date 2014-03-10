@@ -29,17 +29,7 @@ angular.module('starter', ['ionic', 'starter.services', 'starter.controllers'])
       views: {
         'pets-tab': {
           templateUrl: 'templates/game.html',
-          controller: 'GameCtrl'
-        }
-      }
-    })
-
-    .state('tab.pet-detail', {
-      url: '/pet/:petId',
-      views: {
-        'pets-tab': {
-          templateUrl: 'templates/pet-detail.html',
-          controller: 'PetDetailCtrl'
+          controller: 'PetCtrl'
         }
       }
     })
@@ -48,7 +38,19 @@ angular.module('starter', ['ionic', 'starter.services', 'starter.controllers'])
       url: '/adopt',
       views: {
         'adopt-tab': {
-          templateUrl: 'templates/adopt.html'
+          templateUrl: 'templates/game.html',
+          controller: 'CareCtrl'
+        }
+      }
+    })
+
+
+    .state('tab.pet-detail', {
+      url: '/pet/:petId',
+      views: {
+        'pets-tab': {
+          templateUrl: 'templates/pet-detail.html',
+          controller: 'PetDetailCtrl'
         }
       }
     })
