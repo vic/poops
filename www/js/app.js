@@ -28,7 +28,7 @@ angular.module('starter', ['ionic', 'starter.services', 'starter.controllers'])
       url: '/pets',
       views: {
         'pets-tab': {
-          templateUrl: 'templates/game.html',
+          templateUrl: 'templates/pet.html',
           controller: 'PetCtrl'
         }
       }
@@ -38,7 +38,7 @@ angular.module('starter', ['ionic', 'starter.services', 'starter.controllers'])
       url: '/adopt',
       views: {
         'adopt-tab': {
-          templateUrl: 'templates/game.html',
+          templateUrl: 'templates/adopt.html',
           controller: 'CareCtrl'
         }
       }
